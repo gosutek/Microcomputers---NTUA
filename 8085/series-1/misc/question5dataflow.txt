@@ -1,0 +1,8 @@
+module dataflowCircuit (F A, B, C, D);
+    output [1:4] F;
+    input A, B, C, D;
+    assign F[1] = A & ((B & C) | D) + (~B & ~C & D),
+            F[2] = (~A & ~B & ~D) | (~A & C & D) | (B & ~C & D) | (A & ~B & D) | (A & C & ~D),
+            F[3] = (A & B & C) | ((A | (B & C)) & D) | ((B | C) & (D & E)),
+            F[4] = A & (B | (C & D) | E) | (B & C & D & E);
+endmodule

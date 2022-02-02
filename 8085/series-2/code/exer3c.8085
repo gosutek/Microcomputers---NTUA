@@ -1,0 +1,171 @@
+IN 10H
+
+START:
+LINE_0:
+    MVI A,FEH           ; Line number
+    STA 2800H           ; Set line number
+    LDA 1800H           ; Read key presses for this line
+    ANI 07H             ; Keep the 3 LSB
+    CPI 07H             ; If we have 111 go to the next line
+    JZ LINE_1
+    CPI 06H             ; If the left button is pressed
+    MVI C,86H           ; Set its code and display the results
+    JZ DISPLAY_RESULTS
+    CPI 05H             ; If the middle button is pressed
+    MVI C,85H           ; Set its code and display the results
+    JZ DISPLAY_RESULTS
+    ;CPI 03H            ; If the right button is pressed
+    ;MVI C,00H          ; Set its code and display the results
+    ;JZ DISPLAY_RESULTS ; (This line has only two buttons)
+
+; The code for the other lines is similar to the above
+; The only differences are the line numbers and key codes
+LINE_1:
+    MVI A,FDH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_2
+    CPI 06H
+    MVI C,84H
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,80H
+    JZ DISPLAY_RESULTS
+    MVI C,82H
+    JZ DISPLAY_RESULTS
+
+LINE_2:
+    MVI A,FBH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_3
+    CPI 06H
+    MVI C,00H
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,83H
+    JZ DISPLAY_RESULTS
+    MVI C,81H
+    JZ DISPLAY_RESULTS
+
+LINE_3:
+    MVI A,F7H
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_4
+    CPI 06H
+    MVI C,01H
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,02H
+    JZ DISPLAY_RESULTS
+    MVI C,03H
+    JZ DISPLAY_RESULTS
+
+LINE_4:
+    MVI A,EFH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_5
+    CPI 06H
+    MVI C,04H
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,05H
+    JZ DISPLAY_RESULTS
+    MVI C,06H
+    JZ DISPLAY_RESULTS
+
+LINE_5:
+    MVI A,DFH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_6
+    CPI 06H
+    MVI C,07H
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,08H
+    JZ DISPLAY_RESULTS
+    MVI C,09H
+    JZ DISPLAY_RESULTS
+
+LINE_6:
+    MVI A,BFH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ LINE_7
+    CPI 06H
+    MVI C,0AH
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,0BH
+    JZ DISPLAY_RESULTS
+    MVI C,0CH
+    JZ DISPLAY_RESULTS
+
+LINE_7:
+    MVI A,7FH
+    STA 2800H
+    LDA 1800H
+    MVI B,07H
+    ANA B
+    CPI 07H
+    JZ DISPLAY_RESULTS
+    CPI 06H
+    MVI C,0DH
+    JZ DISPLAY_RESULTS
+    CPI 05H
+    MVI C,0EH
+    JZ DISPLAY_RESULTS
+    MVI C,0FH
+    JZ DISPLAY_RESULTS
+
+
+; Display the results
+; C = the key code found in the previous steps
+; D = The memory location of the screen data 
+; to be used by STDM
+DISPLAY_RESULTS:
+    LXI D,0B10H     ; Arbitrary memory address we write
+                    ; the screen data
+
+    ; Write the 4 LSB of the key code to the memory 
+    ; location 0B14H (5th digit on the screen)
+    MOV A,C
+    ANI 0FH
+    STA 0B14H
+
+    ; Write the 4 MSB of the key code to the memory 
+    ; location 0B15H (6th digit on the screen)
+    MOV A,C
+    RRC
+    RRC
+    RRC
+    RRC
+    ANI 0FH
+    STA 0B15H
+
+    ; Get and display the results
+    CALL STDM
+    CALL DCD
+    JMP START
+END

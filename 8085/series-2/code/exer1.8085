@@ -1,0 +1,59 @@
+; Store numbers in descending order
+; Initialize variables
+    IN 10H
+    LXI H,08FFH
+    MVI A,00H
+    MVI B,00H			
+STORE_NUMBERS:
+    INX H	; Memory location in HL registers
+    DCR B     ; Counter
+    MOV M,B
+    CMP B     ; If A < B continue looping 
+    JC STORE_NUMBERS
+
+
+; Count the zeros in all numbers
+; A = Current Number
+; H = Numbers Counter (00H - FFH)
+; L = Loop counter to check each digit of a number (8 loops)
+; D-E = Memory Address of Numbers
+; B-C = Zeros Counter 
+    MVI H,00H          ; Initialize Numbers Counter
+    LXI D,08FFH        ; Initialize address
+    LXI B,0000H        ; Initialie total number of zeros  
+
+COUNT_ALL_ZEROS:
+    INR H
+    ; When we count all numbers and return to 00H again exit
+    JZ COUNT_ZEROS_END
+    INX D
+    LDAX D
+    MVI L,08H
+COUNT_ZEROS_IN_NUMBER:
+    RLC
+    JNC FOUND_ZERO
+    INX B
+FOUND_ZERO:
+    ; Decrease D and if it is 0 exit inner loop since the 
+    ; whole number has been processed else continue with the
+    ; same number
+    DCR L
+    JZ COUNT_ALL_ZEROS
+    JMP COUNT_ZEROS_IN_NUMBER
+COUNT_ZEROS_END:
+    ; Store the result in memory at 0A22H,0A23H
+    MOV H,B
+    MOV L,C
+    SHLD 0A22H     
+
+
+; Count numbers between 10H and 60H
+    MVI A,60H
+    SUI 10H
+    INR A
+    ; Store the result in memory at 0A2FH
+    STA 0A2FH
+    MOV D,A 
+
+
+END

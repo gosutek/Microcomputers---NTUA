@@ -1,0 +1,64 @@
+LXI B,0064H	;100 * 1ms = 0.1sec
+MVI D,00H	;time counter(200 * 0.1 = 20sec (200 = C8H))
+
+
+START:
+LDA 2000H
+ANI 80H	;need MSB specifically to be set. RLC of 20H will jump after few loops
+CPI 00H	;OFF
+JZ OFF1
+JMP START
+
+OFF1:
+LDA 2000H
+ANI 80H
+CPI 80H	;checks if on
+JZ ON1
+JMP OFF1
+
+ON1:
+LDA 2000H
+ANI 80H
+CPI 00H	;check if off, completing push-button
+JZ OFF2
+JMP ON1
+
+OFF2:
+LDA 2000H
+ANI 80H
+CPI 80H
+JZ ON2
+MVI A,00H
+STA 3000H	;light led
+CALL DELB	;wait for 0.1sec
+INR D		;time counter++
+MOV A,D	
+CPI C8H
+JNZ OFF2	;checks if time reached
+MVI A,FFH	;if true then turn led off
+STA 3000H
+MVI D,00H	;reset counter
+JMP OFF1	;back to start
+
+ON2:
+LDA 2000H
+ANI 80H
+CPI 00H
+JZ RESTART
+MVI A,00H	;light led
+STA 3000H
+CALL DELB	;wait for 0.1sec
+INR D		;time counter++
+MOV A,D
+CPI C8H
+JNZ ON2	;checks if time reached
+MVI A,FFH	;if true then turn led off
+STA 3000H
+MVI D,00H	;reset counter
+JMP OFF1	;back to start
+
+RESTART:
+MVI D,00H
+JMP OFF2
+
+END

@@ -1,0 +1,112 @@
+START:
+    ; Initialization of counter in D and sum in HL
+    MVI D,40H
+    MVI H,00H
+    MVI L,00H
+    ; C has the new bytes
+    MVI C,00H
+    ; E has the previous x7 value
+    MVI E,00H
+    MVI B,00H
+
+PROCESS_DATA:
+    ; Update previous x7 value
+    MOV E,B
+    IN 20H     ; Get input to A
+    ; Temporarily store A to C
+    MOV C,A
+ 
+    ANI 80H
+    ; Temporarily store current x7 value to B
+    MOV B,A
+
+    CPI 01H
+    ; If x7 = 0 continue looping
+    JNZ PROCESS_DATA
+    ; If x7 = 1 check x7 previous value
+    ; stored in E
+    MOV A,E 
+    CPI 00H
+    ; If previous value is also 1 continue looping
+    ; else process new data
+    JNZ PROCESS_DATA
+
+CONTINUE_PROCESSING:
+    MOV A,C
+    ANI 0FH    ; Keep the 4 LSB
+    MOV C,A
+
+    ; If it is even it is LSB bytes so no shift
+    ; is needed
+    ANI 01H
+    CPI 01H
+    JZ ADD_RESULTS
+
+GET_4_MSB:
+    MOV A,C
+    RLC
+    RLC
+    RLC
+    RLC
+    MOV C,A
+    
+ADD_RESULTS:
+    ; 16 bit addition of BC to HL
+    ; C containes the new bytes
+    MVI B,00H
+    DAD B
+    
+    ; Decrease the counter
+    DCR D
+    JZ FIND_MEAN
+    ; If counter is not yet 0 update loop
+    JMP PROCESS_DATA
+
+FIND_MEAN:
+    ; We shift 4 times to the right the register HL 
+    ; in order to divide the sum of the 32 numbers
+    ; by 32 and find the mean value. We first set
+    ; the carry to 0 and we rotate right the H and
+    ; then the L registers. We do this 4 times
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+    
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+    
+    
+    ; The result is in L. We also store it
+    ; in 0B13H and finish the program
+    MOV A,L
+    LDA 0B13H
+END

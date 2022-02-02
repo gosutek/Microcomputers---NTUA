@@ -1,0 +1,31 @@
+IN 10H
+MVI E,FEH	;Light up LSB of LED
+LXI H,3000H	;Address of LED
+LXI B,01F4H	;500 * 1ms
+
+CHECK:
+LDA 2000H	;Address of switch
+MOV D,A	
+RRC		;CY is modified according to bit D0
+JC CHECK	;If LSB of switch is set then loop till not set
+MOV A,D	;Get address again without having to access memory
+RLC		;CY is modified according to bit D7
+JC RIGHT	;If MSB of switch is set then right routine else continue to left routine
+
+LEFT:
+MOV A,E	;E acts as temp storage for when accum is checking conditions	
+MOV M,A	;light up LED
+RLC		;If we use RLC we cant initiate A from FFH. Need 1 zero.
+MOV E,A	;Store temp value to E so i can check condition.
+CALL DELB
+JMP CHECK
+
+RIGHT:		;Pretty much the same as LEFT routine.
+MOV A,E
+MOV M,A
+RRC
+MOV E,A
+CALL DELB
+JMP CHECK
+
+END

@@ -1,0 +1,85 @@
+DATA: MVI A,10H	;Only middle segs should display
+STA 0B00H
+STA 0B01H
+STA 0B04H
+STA 0B05H
+
+LXI B,0064H
+MVI A,0DH		;Unmask RST6.5 - Mask RST7.5,RST5.5
+SIM
+LXI D,0B00H		;Load address of digits for 7-seg display
+EI
+
+RESET1:
+CALL BLNK
+MVI A,FFH
+OUT 30H
+
+WAIT_LOOP:		;Waiting for interrupt
+JMP WAIT_LOOP
+
+INTR_ROUTINE:
+POP H			;Don't need to return
+MVI A,00H		;Light LEDs
+OUT 30H
+
+LXI B,0064H		;100ms
+LXI D,0B00H		;Load address of digits for 7-seg display
+
+RESET_TIMER:
+LXI H,0600H
+SHLD 0B02H
+CALL DISPLAY_SEG
+EI
+
+DECIMAL_CHECK:
+MOV A,L
+CPI 00H		;If L = 0 then we need to DCR the decimals.
+JZ DCR_DECIMAL
+DCR L			;Else DCR L
+SHLD 0B02H
+CALL DISPLAY_SEG
+JMP DECIMAL_CHECK
+
+DCR_DECIMAL:
+DCR H
+MOV A,H
+CPI 00H		;If H = 0 then we reached the final countdown.
+MVI L,09H
+SHLD 0B02H
+CALL DISPLAY_SEG
+JZ END_COND
+JMP DECIMAL_CHECK
+
+
+DISPLAY_SEG:		;Routine that displays timer on screen
+PUSH PSW		;Need to store 8085 current state to call STDM and DCD
+PUSH H
+PUSH D
+PUSH B
+CALL STDM
+MVI A,0AH		;10 * 100ms = 1 sec of displaying the number on the screen 
+DISPLAY_LOOP:		;If pair BC is loaded with 03E8 and we just CALL DELB without looping the call to DCD
+CALL DCD		;then the numbers appear on the screen for a brief moment before disappearing
+POP B
+CALL DELB		;Note: 1 sec varies cause simulation
+PUSH B
+DCR A
+CPI 00H
+JNZ DISPLAY_LOOP
+POP B			;Retrive 8085 status
+POP D
+POP H
+POP PSW
+RET
+
+END_COND:		;If decimal is 0 then count down from 9 and be done.
+MOV A,L
+CPI 00H
+DCR L
+SHLD 0B02H
+CALL DISPLAY_SEG
+JNZ END_COND
+JMP RESET1
+
+END

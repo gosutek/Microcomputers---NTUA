@@ -1,0 +1,48 @@
+module moore(y, x, clock, reset);
+    output y;
+    input x, clock, reset;
+    reg [1: 0] state, output_reg;
+    parameter a = 2'b00, b = 2'b01, c = 2'b10, d = 2'b11;
+    
+    always @ ( posedge clock, negedge reset)
+    //Initialization at state A if reset == 0
+    if (reset == 0) state <= a;
+    else 
+        case (state)
+            a: 
+            begin
+                if (x == 0) 
+                    state <= d;
+                else 
+                    state <= a;
+                output_reg <= 1'b0; 
+            end
+            b: 
+            begin
+                if (x == 0) 
+                    state <= c;
+                else 
+                    state <= a;
+                output_reg <= 1'b1;
+            end
+            c: 
+            begin
+                if (x == 0) 
+                    state <= b;
+                else 
+                    state <= d;
+                output_reg <= 1'b1;
+            end
+            d: 
+            begin
+                if (x == 0) 
+                    state <= c;
+                else 
+                    state <= d;
+                output_reg <= 1'b0;
+            end
+        endcase
+        
+assign y = output_reg;
+
+endmodule

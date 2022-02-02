@@ -1,0 +1,57 @@
+module mealy(y, x, clock, reset);
+    output y;
+    input x, clock, reset;
+    reg [1: 0] state;
+    reg output_reg;
+    parameter a = 2'b00, b = 2'b01, c = 2'b10, d = 2'b11;
+    
+    always @ ( posedge clock, negedge reset)
+    //Initialization at state A if reset == 0
+    if (reset == 0) state <= a;
+    else 
+        case (state)
+            a: 
+            begin
+                if (x == 0) begin
+                    state <= d;
+                    output_reg <= 1'b1;
+                end else begin 
+                    state <= a;
+                    output_reg <= 1'b0;
+                end
+            end
+            b: 
+            begin
+                if (x == 0) begin
+                    state <= c;
+                    output_reg <= 1'b1;
+                end else begin 
+                    state <= a;
+                    output_reg <= 1'b0;
+                end
+            end
+            c: 
+            begin
+                if (x == 0) begin
+                    state <= d;
+                    output_reg <= 1'b1;
+                end else begin 
+                    state <= b;
+                    output_reg <= 1'b0;
+                end
+            end
+            d: 
+            begin
+                if (x == 0) begin
+                    state <= c;
+                    output_reg <= 1'b0;
+                end else begin 
+                    state <= d;
+                    output_reg <= 1'b1;
+                end
+            end
+        endcase
+        
+assign y = output_reg;
+
+endmodule

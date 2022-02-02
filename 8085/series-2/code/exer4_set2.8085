@@ -1,0 +1,61 @@
+START:
+LDA 2000H
+
+AND1:
+MOV B,A	;store address for later use
+ANI 80H	;A3 set?
+RRC		;rotate to d6 so i can perform and operation
+MOV C,A	;store in c
+MOV A,B	;retrieve address
+ANI 40H	;B3 set?
+ANA C
+RRC		;LEDs x4-x7 should be off
+RRC
+RRC
+MOV D,A
+
+AND2:
+MOV A,B	;retrieve address
+ANI 20H	;A2 set?
+RRC		;rotate to d5 so i can perform and operation
+MOV C,A	;store in c
+MOV A,B	;retrieve address
+ANI 10H	;B2 set?
+ANA C
+RRC
+RRC
+
+AND3:
+ORA D		;or operation of the gate
+ORA D		;update total number
+MOV D,A	;store in D
+
+XOR1:
+MOV A,B	;retrieve address
+ANI 08H	;A1 set?
+RRC	
+MOV C,A
+MOV A,B
+ANI 04H	;B1 set?
+XRA C		;XOR operation
+RRC
+ORA D		;update total number
+MOV D,A
+
+XOR2:
+MOV A,B
+ANI 02H	;A0 set?
+RRC
+MOV C,A
+MOV A,B
+ANI 01H	;B0 set?
+XRA C		;XOR operation
+
+XOR3:		
+XRA D		;last xor gate
+ORA D		;update total number
+CMA		;negative logic
+STA 3000H
+JMP START
+
+END

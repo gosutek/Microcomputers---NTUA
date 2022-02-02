@@ -1,0 +1,43 @@
+module gateModelCircuit (F, A, B, C , D, E);
+    output [1: 4] F;
+    input A, B, C, D, E;
+    wire Anot, Bnot, Cnot, Dnot, w1F1, w2F1, w3F1, w4F1, 
+            w1F2, w2F2, w3F2, w4F2, w5F2,
+            w1F3, w2F3, w3F3, w4F3, w5F3, w6F3, w7F3,
+            w1F4, w2F4, w3F4, w4F4;
+
+    not
+        G1(Anot, A),
+        G2(Bnot, B),
+        G3(Cnot, C),
+        G4(Dnot, D);
+    
+    and
+        G5(w1F1, B, C),
+        G6(w3F1, w2F1, A),
+        G7(w4F1, Bnot, Cnot, D),
+        G8(w1F2, Anot, Bnot, Dnot),
+        G9(w2F2, Anot, C, D),
+        G10(w3F2, B, Cnot, D),
+        G11(w4F2, A, Bnot, D),
+        G12(w5F2, A, C, Dnot),
+        G13(w1F3, A, B, C),
+        G14(w2F3, B, C),
+        G15(w4F3, D, E),
+        G16(w6F3, w3F3, w4F3),
+        G17(w7F3, w5F3, D),
+        G18(w1F4, C, D),
+        G19(w3F4, w2F4, A),
+        G20(w4F4, B, C, D, E);
+
+    or
+        G21(w2F1, w1F1, D),
+        G22(F[1], w3F1, w4F1),
+        G23(F[2], w1F2, w2F2, w3F2, w4F2, w5F2),
+        G24(w5F3, A, w2F3),
+        G25(w3F3, B, C),
+        G26(F[3], w1F3, w7F3, w6F3),
+        G27(w2F4, w1F4, B, E),
+        G28(F[4], w3F4, w4F4);
+endmodule
+    

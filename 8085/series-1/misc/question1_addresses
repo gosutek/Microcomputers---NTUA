@@ -1,0 +1,21 @@
+0800    0E - opcode         MVI C, 08H
+0801    08 - data
+0802    3A - opcode         LDA 2000H
+0803    00 - low address    
+0804    20 - high address  
+0805    17 - opcode         RAL
+0806    DA - opcode         JC 0D08H
+0807    0D - low address
+0808    08 - high address  
+0809    0D - opcode         DCR C
+080A    C2 - opcode         JNZ 0508H
+080B    05 - low address
+080C    08 - high address
+080D    79 - opcode         MOV A, C
+080E    2F - opcode         CMA
+080F    32 - opcode         STA 0030H
+0810    00 - low address
+0811    30 - high address   RST 1
+
+για την ερωτηση(δες το και εσυ):
+    πρεπει να κανουμε JMP 0800 στο τελος και τα conditional jumps πρεπει να δίνουν ελεγχο παλι στο προγραμμα.

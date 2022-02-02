@@ -1,0 +1,41 @@
+;Loop the input to find the first 1 from the right
+; B = Loop counter
+; C = Position of first 1 from the right
+START:
+    LDA 2000H
+    MVI B,09H
+    MVI C,00H
+
+; The input from the switches is rotated to the right .When the 
+; carry flag becomes 1 the position of the one is detected. If the 
+; all inputs are 0 then the position of the 1 will be considered in 
+; position 9
+LOOP_INPUT:
+    RRC
+    INR C
+    JNC FOUND_ZERO
+    JMP CALCULATE_OUTPUT
+FOUND_ZERO:
+    DCR B
+    JNZ LOOP_INPUT
+    
+; From the position of the first 1 we calculated above (9th position
+; if all inputs are 0) we set A = 0 and CY = 1 and we rotate left through
+; the accumulator the needed number of times to make the correct led equal to 1.
+; If all are zero we rotate the 1 through all the positions back to the CY so 
+; all the leds stay switched off.
+CALCULATE_OUTPUT:
+    MVI A,00H
+    INR C
+    STC
+SHIFT_ONE:
+    DCR C
+    JZ UPDATE_LEDS
+    RAL
+    JMP SHIFT_ONE
+
+UPDATE_LEDS:
+    CMA
+    STA 3000H
+    JMP START
+END

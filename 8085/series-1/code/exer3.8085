@@ -1,0 +1,53 @@
+    LXI B,03E8H		; 40ms delay
+    MVI L,00H			; L is used for keeping the state of the lights in case 
+				; input is bigger than 100
+START:
+    LDA 2000H		       ; get the switch input
+    CPI C8H                ; check if input is bigger than 199 and jump to the correct tag
+    JNC ABOVE_199          
+    CPI 64H                 ; check if input is bigger than 99 and jump to the correct tag
+    JNC ABOVE_99
+    MVI D,FFH              ; else the number is 99 or less so calculcate the two digits
+DECA:
+    INR D                  ; D will contain the number of number of dozens
+    SUI 0AH                
+    JNC DECA
+    ADI 0AH
+    MOV E,A                ; Store in E the number of number of units
+    MOV A,D                ; Store in A the number of dozes
+    STC                    
+    CMC                    ; These two commands set the carry flag to 0 in order to use left shift
+    RAL                    
+    RAL
+    RAL
+    RAL                    ; Shift A left four times to move dozens to the 4 MSB
+    ADD E                  ; Add to A the units to the 4 LSB
+    
+    JMP UPDATE_LEDS
+ABOVE_99:                  ;When the number if bigger then 99 and less than 200
+    MOV A,L  			; Get the state of lights
+    CPI 00H			
+    JZ ABOVE_99_1           
+    MVI L,00H              ; If the state was switched on update state to on off
+    MVI A,00H              ; and switch off the leds
+JMP UPDATE_LEDS
+  ABOVE_99_1:
+      MVI L,01H	       ; If the state was switched off update state to on
+      MVI A,0FH            ; and switch on the 4 LSB leds
+      JMP UPDATE_LEDS
+ABOVE_199:                 ; When the number if bigger then 199
+    MOV A,L                ; Get the state of lights
+    CPI 00H			
+    JZ ABOVE_199_1
+    MVI L,00H              ; If the state was switched on update state to on off
+    MVI A,00H              ; and switch off the leds
+JMP UPDATE_LEDS
+  ABOVE_199_1:
+      MVI L,01H            ; If the state was switched off update state to on
+      MVI A,F0H            ; and switch on the 4 MSB leds
+UPDATE_LEDS:
+    CMA                    ; Find the complement of A so leds light on 1
+    STA 3000H              ; Send the result to the output lights
+    CALL DELB
+    JMP START
+END

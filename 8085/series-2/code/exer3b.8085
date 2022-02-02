@@ -1,0 +1,30 @@
+START:
+; Read input from the keyboard. If the number 
+; is not between 1 and 8 continue
+    CALL KIND
+    CPI 09H
+    JNC START
+    CPI 00H
+    JZ START
+    
+
+; We rotate left the Accumulator while adding ones to 
+; the switched off leds 
+; A = The output of the leds
+; B = Loop counter (1-8)
+    MOV B,A
+    MVI A,00H
+; If B > 1 switch off the rightmost open led 
+LOOP_INPUT:
+    DCR B
+    JZ UPDATE_LEDS
+    RLC
+    ORI 01H
+    JMP LOOP_INPUT
+
+
+UPDATE_LEDS:
+    STA 3000H
+    JMP START
+
+END

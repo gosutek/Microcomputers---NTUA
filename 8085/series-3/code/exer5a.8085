@@ -1,0 +1,136 @@
+START:
+    ; Store in memory the counter at 0B10H and
+    ; the current 16 bit sum in 0B11H,0B12H to
+    ; retrieve them between interrupts 
+    ; Counter starts from 64 = 40H
+    MVI A,40H
+    STA 0B10H
+
+    ; Sum starts from 0
+    MVI A,00H
+    STA 0B11H
+    STA 0B12H
+ 
+    ; Enable Rst 6.5 interrupt
+    MVI A,0DH
+    
+    SIM
+    EI
+
+; Wait for the interrupt to happen
+WAIT_INTR:
+    JMP WAIT_INTR
+
+RST6.5: 
+    ; Save register state
+    PUSH PSW
+    PUSH B
+    PUSH D
+    PUSH H
+
+    JMP RST6.5_ROUTINE
+
+    ; Load previous register state
+    POP PSW
+    POP B
+    POP D
+    POP H
+
+RST6.5_ROUTINE:
+    IN 20H     ; Get input to A
+    ANI 0FH    ; Keep the 4 LSB
+    MOV C,A
+    
+    ; Load Current Counter and save it to D
+    LDA 0B10H
+    MOV D,A
+
+    ; If it is even it is LSB bytes so no shift
+    ; is needed
+    ANI 01H
+    CPI 01H
+    JZ ADD_RESULTS
+
+GET_4_MSB:
+    MOV A,C
+    RLC
+    RLC
+    RLC
+    RLC
+    MOV C,A
+    
+ADD_RESULTS:
+    ; Load Current Sum
+    LHLD 0B11H
+
+    ; 16 bit addition of BC to HL
+    ; C containes the new bytes
+    MVI B,00H
+    DAD B
+    
+    ; Decrease the counter
+    DCR D
+    JZ FIND_MEAN
+    ; If counter is not yet 0 update it in
+    ; memory along with the current sum and 
+    ; return waiting for the next interrupt
+    MOV A,D
+    STA 0B10H
+    SHLD 0B11H
+    EI
+    RET
+
+FIND_MEAN:
+    ; We shift 4 times to the right the register HL 
+    ; in order to divide the sum of the 32 numbers
+    ; by 32 and find the mean value. We first set
+    ; the carry to 0 and we rotate right the H and
+    ; then the L registers. We do this 4 times
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+    
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+
+    STC
+    CMC
+    MOV A,H
+    RAL
+    MOV H,A
+    MOV A,L
+    RAL
+    MOV L,A
+    
+    
+    ; The result is in L. We also store it
+    ; in 0B13H and finish the program
+    MOV A,L
+    LDA 0B13H
+
+    ; Load previous register state
+    POP PSW
+    POP B
+    POP D
+    POP H
+END

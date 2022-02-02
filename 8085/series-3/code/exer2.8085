@@ -1,0 +1,94 @@
+EQU K1_VALUE,10H
+EQU K2_VALUE,20H
+
+START:
+    ; Enable Rst 6.5 interrupt
+    MVI A,0DH
+    SIM
+    EI
+
+; Wait for the interrupt to happen
+WAIT_INTR:
+    JMP WAIT_INTR
+
+INTR_ROUTINE:
+    ; Save register state. HL are not used so 
+    ; they are not stored in the stack
+    PUSH PSW
+    PUSH B
+    PUSH D
+
+    LXI D,0B50H     ; Arbitrary memory address we write
+                    ; the screen data
+
+    ; Get the first input and write it to the memory 
+    ; location 0B50H (1st digit on the screen)
+    CALL KIND
+    MOV C,A
+    STA 0B50H
+
+    ; Get the second input and write it to the memory 
+    ; location 0B51H (2nd digit on the screen)
+    
+    CALL KIND
+    STA 0B51H
+
+    ; Combine the second input (4 MSB) with the first (4 LSB) store
+    ; it on C
+    RLC
+    RLC
+    RLC
+    RLC
+    ADD C
+    MOV C,A
+    
+    ; Make the rest of the screen bits zero
+    MVI A,00H
+    STA 0B52H
+    STA 0B53H
+    STA 0B54H
+    STA 0B55H
+    
+    ; Display the two inputs on the screen
+    CALL STDM
+    CALL DCD
+    
+
+    ; Get the combined 8 bit number
+    MOV A,C
+    STA 0B26H
+    
+    MVI D,K1_VALUE
+    MVI E,K2_VALUE
+    
+    ; Increase the value so the first and second intervals are 
+    ; K1 and K2 inclusive respectively 
+    INR D
+    INR E
+    
+    ; Right led if for (0,K1]
+    MVI B,01H
+    CMP D
+    JC SWITCH_LEDS_ON
+    
+    ; Middle led is for (K1,K2]
+    MVI B,02H
+    CMP E
+    JC SWITCH_LEDS_ON
+
+    ; Left led is for (K2,FFH)
+    MVI B,04H
+     
+
+SWITCH_LEDS_ON:
+    MOV A,B
+    CMA
+    STA 3000H
+    EI
+
+    ; Load previous register state
+    POP B
+    POP D
+    POP PSW
+    RET
+END
